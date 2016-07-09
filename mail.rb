@@ -1,6 +1,6 @@
 require 'net/smtp'
 require 'mail'
-
+require 'yaml'
 class MailClient
 
 	#String server
@@ -59,16 +59,46 @@ class MailClient
 	end
 end
 
-Class parser
+def parse
+	files=Dir.entries '.'
+	mail_lists=Array.new
+	has_config=false
+	
+	for f in files
+		if f.end_with? '.mail'
+			mail_lists.push f
+		elsif f=='config.yml' 
+			has_config=true
+		end
+	end
+
+	if !has_config
+		puts "Error: can\'t find config.yml in #{Dir.pwd}"
+		return false
+	end
+	
+	if mail_lists.empty?
+		puts "Warnning: can\'t find any .mail in #{Dir.pwd}"
+		return false
+	end
+
+	$configs=YAML.load_file 'config.yml'
+	$mails=Array.new
+	for l in mail_lists
+		tmp=YAML.load_file l
+		$mails = $mails + tmp
+	end
+	puts 'Success read config and mail lists'
+	return true
 end
 
 def testMail
 	server='smtp.yeah.net'
 	port=25
-	from='jiayang_sun@yeah.net'
+	from='xxxxxxx@yeah.net'
 	account=from
-	to='go2intel@163.com'
-	pwd='sun7261030'
+	to='xxxxxxx@163.com'
+	pwd='password'
 	subject='test my script'
 	body='this is body'
 	client=MailClient.new server, port
@@ -77,3 +107,34 @@ def testMail
 	client.send from,to, subject, body
 	client.finish
 end
+
+def testParse
+	parse
+	puts $configs
+	puts $mails
+end
+
+parse
+account=$configs['account']
+pwd=$configs['password']
+server=$configs['server']
+port=$configs['port']
+from=account
+debug_receiver=$configs['debug_receiver']
+subj=$configs['subject']
+body=$configs['body']
+
+client=MailClient.new server, port
+client.login account, pwd
+
+send_num=0
+for to in $mails
+	client.send from,to, subj, body
+	send_num=send_num+1
+end 
+
+client.finish
+
+puts "----------------------------"
+puts "send #{send_num} mails, exit"
+

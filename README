@@ -1,0 +1,10 @@
+##WHAT THIS?
+a ruby script to send out mails automatically
+
+##ENVIRONMENT
+1. ruby 2.2 and above
+2. mail from mikel, see https://github.com/mikel/mail  
+
+##HANDS ON
+1. set config.yml 
+2. add receivers' mails to files ending with .mail
